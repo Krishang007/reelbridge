@@ -1,0 +1,16 @@
+# Local Python environment
+.venv/
+venv/
+
+# Local secrets and configuration
+config.py
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Downloaded media
+downloads/
