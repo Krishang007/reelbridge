@@ -4,6 +4,7 @@ import os
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, HttpUrl
 
 from app.reel_service import download_reel, prepare_reel
@@ -24,18 +25,35 @@ allowed_origins = [
     if origin.strip()
 ]
 
+FRONTEND_DIST = Path(
+    os.getenv("FRONTEND_DIST", "frontend/dist")
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+assets_dir = FRONTEND_DIST / "assets"
+if assets_dir.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=assets_dir),
+        name="assets",
+    )
+
 class ReelRequest(BaseModel):
     url: HttpUrl
     action: Literal["download", "discord", "whatsapp", "text"] = "download"
 
 @app.get("/")
 def root():
+    index_file = FRONTEND_DIST / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+
     return {
         "name": "ReelBridge",
         "status": "running"
