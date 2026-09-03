@@ -1,0 +1,9 @@
+.git
+.gitignore
+.venv
+__pycache__
+downloads
+config.py
+.env
+frontend
+optional/discord

@@ -1,19 +1,13 @@
 from pathlib import Path
+from typing import Literal
+import os
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, HttpUrl
 
-from app.reel_service import download_reel
-
+from app.reel_service import download_reel, prepare_reel
 from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # create a fastapi swagger app 
 app = FastAPI(
@@ -21,7 +15,21 @@ app = FastAPI(
     version="0.1.0"
 )
 
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGIN",
+        "http://localhost:5173",
+    ).split(",")
+    if origin.strip()
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 class ReelRequest(BaseModel):
     url: HttpUrl
     action: Literal["download", "discord", "whatsapp", "text"] = "download"
@@ -47,7 +55,7 @@ def download(
         )
 
     try:
-        video_path = download_reel(url)
+        video_path = prepare_reel(download_reel(url))
 
         background_tasks.add_task(
             delete_file,

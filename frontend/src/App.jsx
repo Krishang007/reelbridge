@@ -1,25 +1,27 @@
 import { useState } from 'react'
 import './App.css'//imports the css file
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 function App() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [action, setAction] = useState("download");
-  const isSendAction = action === 'discord' || action === 'whatsapp'
+  const [success, setSuccess] = useState('')
 
   async function handleSubmit(event) {
     event.preventDefault()
     setLoading(true)
     setError('')
-    // expetionhanplign and fecths 
+    setSuccess('')
+
     try {
-      const response = await fetch('http://localhost:8000/reel/download', {
+      const response = await fetch(`${API_URL}/reel/download`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, action: 'download' }),
       })
 
       if (!response.ok) {
@@ -35,9 +37,10 @@ function App() {
       link.download = 'reel.mp4'
       link.click()
 
-      URL.revokeObjectURL(downloadUrl)
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000)
+      setSuccess('Your Reel is ready and downloading.')
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'Download failed')
     } finally {
       setLoading(false)
     }
@@ -59,24 +62,13 @@ function App() {
             required
           />
 
-          <select
-            value={action}
-            onChange={(event) => setAction(event.target.value)}
-          >
-            <option value="download">Download</option>
-            <option value="discord">Discord</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="text">Text</option>
-          </select>
-
           <button type="submit" disabled={loading}>
-            {loading
-              ? (isSendAction ? 'Sending...' : 'Getting Reel...')
-              : (isSendAction ? 'Send Reel' : 'Get Reel')}
+            {loading ? 'Preparing Reel...' : 'Get Reel'}
           </button>
         </form>
 
-        {error && <p>{error}</p>}
+        {error && <p role="alert">{error}</p>}
+        {success && <p role="status">{success}</p>}
       </section>
     </main>
   )
