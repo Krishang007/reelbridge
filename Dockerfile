@@ -23,4 +23,7 @@ COPY --from=frontend-build /frontend/dist ./frontend/dist
 ENV FRONTEND_DIST=/app/frontend/dist
 ENV PYTHONUNBUFFERED=1
 
+EXPOSE 8000
+
+# Compose Watch overrides this with a reload-enabled command for development.
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

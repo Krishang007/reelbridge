@@ -1,0 +1,33 @@
+services:
+  reelbridge:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      FRONTEND_ORIGIN: http://localhost:8000
+      FRONTEND_DIST: /app/frontend/dist
+    command: >-
+      sh -c
+      "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    develop:
+      watch:
+        # Backend files sync into the running container. Uvicorn reloads them.
+        - action: sync
+          path: ./backend/app
+          target: /app/app
+          ignore:
+            - __pycache__/
+
+        # Dependency and build changes need a new image.
+        - action: rebuild
+          path: ./backend/requirements.txt
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/package-lock.json
+        - action: rebuild
+          path: ./frontend/src
+        - action: rebuild
+          path: ./frontend/public
+        - action: rebuild
+          path: ./Dockerfile
